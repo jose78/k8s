@@ -21,7 +21,6 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
   producer:
     build: module_producer/
-    # image: module_producer:1.5
     ports:
       - "9090:8989"
     links:
@@ -34,7 +33,6 @@ services:
       KAFKA_BOOTSTRAP_SERVER: "kafka:9092"
   consumer:
     build: module_consumer/
-    # image: module_consumer:1.5
     ports:
       - "8989:8989"
     links:
