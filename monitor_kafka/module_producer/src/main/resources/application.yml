@@ -10,3 +10,11 @@ app:
   version: 1.0
   env: local
 kafka_host: ${KAFKA_BOOTSTRAP_SERVER}
+
+management:
+  endpoints:
+    web.exposure.include: "*"
+    prometheus.enabled: true
+    metrics.enabled: true
+   metrics.export.prometheus.enabled: true
+

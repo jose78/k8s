@@ -1,48 +1,94 @@
-version: '3.5'
+version: '3.3'
+volumes:
+    prometheus_data: {}
+    grafana_data: {}
 
 services:
-  zookeeper:
-    image: wurstmeister/zookeeper
+#  zookeeper:
+#    image: wurstmeister/zookeeper
+#    ports:
+#      - "2181:2181"
+#  kafka:
+#    build: module_kafka/
+#    ports:
+#      - "9092:9092"
+#      - "1099:1099"
+#    environment:
+#      KAFKA_ADVERTISED_HOST_NAME: kafka
+#      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+#      KAFKA_CREATE_TOPICS: "users:1:1"
+#      KAFKA_JMX_OPTS: "-Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false -Djava.rmi.server.hostname=127.0.0.1 -Dcom.sun.management.jmxremote.rmi.port=1099"
+#      JMX_PORT: 1099
+#    links:
+#      - zookeeper
+#    volumes:
+#      - /var/run/docker.sock:/var/run/docker.sock
+#  producer:
+#    build: module_producer/
+#    ports:
+#      - "8080:8989"
+#    links:
+#      - kafka
+#    depends_on:
+#      - zookeeper
+#      - kafka
+#    environment:
+#      kafka_host: kafka
+#      KAFKA_BOOTSTRAP_SERVER: "kafka:9092"
+#  consumer:
+#    build: module_consumer/
+#    ports:
+#      - "8989:8989"
+#    links:
+#      - kafka
+#    depends_on:
+#      - kafka
+#      - producer
+#      - zookeeper
+#    environment:
+#      kafka_host: kafka
+#      KAFKA_BOOTSTRAP_SERVER: "kafka:9092"
+  extra:
+    build: module_extra/
     ports:
-      - "2181:2181"
-  kafka:
-    build: module_kafka/
-    ports:
-      - "9092:9092"
-      - "1099:1099"
-    environment:
-      KAFKA_ADVERTISED_HOST_NAME: kafka
-      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
-      KAFKA_CREATE_TOPICS: "users:1:1"
-      KAFKA_JMX_OPTS: "-Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false -Djava.rmi.server.hostname=127.0.0.1 -Dcom.sun.management.jmxremote.rmi.port=1099"
-      JMX_PORT: 1099
-    links:
-      - zookeeper
+      - "8085:8091"
+  prometheus:
+    image: prom/prometheus:v2.1.0
     volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
-  producer:
-    build: module_producer/
+      - ./prometheus/:/etc/prometheus/
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/usr/share/prometheus/console_libraries'
+      - '--web.console.templates=/usr/share/prometheus/consoles'
     ports:
-      - "9090:8989"
+      - 9090:9090
     links:
-      - kafka
-    depends_on:
-      - zookeeper
-      - kafka
-    environment:
-      kafka_host: kafka
-      KAFKA_BOOTSTRAP_SERVER: "kafka:9092"
-  consumer:
-    build: module_consumer/
+      - extra:extra
+      - alertmanager:alertmanager
+    restart: always
+  alertmanager:
+    image: prom/alertmanager
     ports:
-      - "8989:8989"
-    links:
-      - kafka
+      - 9093:9093
+    volumes:
+      - ./alertmanager/:/etc/alertmanager/
+    restart: always
+    command:
+      - '--config.file=/etc/alertmanager/config.yml'
+      - '--storage.path=/alertmanager'
+  grafana:
+    image: grafana/grafana
+    user: "472"
     depends_on:
-      - kafka
-      - producer
-      - zookeeper
-    environment:
-      kafka_host: kafka
-      KAFKA_BOOTSTRAP_SERVER: "kafka:9092"
+      - prometheus
+    ports:
+      - 3000:3000
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./grafana/provisioning/:/etc/grafana/provisioning/
+    env_file:
+      - ./grafana/config.monitoring
+    restart: always
 

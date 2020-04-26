@@ -42,4 +42,6 @@ public class DemoController {
         for (int index = 0; index  < user.getTimes() ; index++)
             this.producerSvc.sendMessage(user.toString());
     }
+
+
 }

@@ -13,3 +13,9 @@ app:
   env: local
 
 
+management:
+  endpoints:
+    web.exposure.include: "*"
+    prometheus.enabled: true
+    metrics.enabled: true
+  metrics.export.prometheus.enabled: true
