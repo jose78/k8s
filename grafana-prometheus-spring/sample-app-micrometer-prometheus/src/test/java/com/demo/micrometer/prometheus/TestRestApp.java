@@ -15,14 +15,23 @@ import java.net.URISyntaxException;
 public class TestRestApp {
 
     @Test
+    public void testHello() throws URISyntaxException {
+        RestTemplate restTemplate = new RestTemplate();
+        final String baseUrl = "http://localhost:" + 8080 + "/hello";
+        URI uri = new URI(baseUrl);
+        Object result = restTemplate.getForObject(uri, String.class);
+        System.out.println("obj:" + result);
+    }
+
+    @Test
     public void testAddAccountMissingHeader() throws URISyntaxException {
         RestTemplate restTemplate = new RestTemplate();
-        final String baseUrl = "http://localhost:" + 8080 + "/accounts/";
+        final String baseUrl = "http://localhost:" + 8080 + "/accounts";
         URI uri = new URI(baseUrl);
         Account employee = new Account("BIC", "Adam", "Gilly", "test@email.com");
         HttpHeaders headers = new HttpHeaders();
         HttpEntity<Account> request = new HttpEntity<>(employee, headers);
-        restTemplate.postForEntity(uri, request, String.class);
+        restTemplate.postForObject(uri, request, Account.class);
 
     }
 }

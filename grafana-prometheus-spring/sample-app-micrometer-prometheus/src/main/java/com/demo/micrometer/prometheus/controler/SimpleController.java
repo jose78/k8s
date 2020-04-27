@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 public class SimpleController {
-    Logger logger = LoggerFactory.getLogger(SimpleController.class);
+    private static Logger logger = LoggerFactory.getLogger(SimpleController.class);
 
     @Autowired
     private AccountService accountService;
@@ -24,11 +24,9 @@ public class SimpleController {
             consumes = "application/json")
     public void addAccount
             (
-                    @RequestHeader(name = "X-COM-PERSIST", required = true) String headerPersist,
-                    @RequestHeader(name = "X-COM-LOCATION", defaultValue = "ASIA") String headerLocation,
                     @RequestBody Account account
             ) throws Exception {
-
+        logger.info("--> " + account);
         accountService.registerAccount(account);
     }
 }
